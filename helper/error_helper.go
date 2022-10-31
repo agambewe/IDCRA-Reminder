@@ -14,14 +14,16 @@ func PanicIfError(err error) {
 func RecoveryIfPanic(db *gorm.DB) {
 
 	log.Printf("Recovery called...")
+
 	if r := recover(); r != nil {
 		log.Printf("Recovery: %s", r)
 		db.Rollback()
-	}
 
-	db.Commit()
-	sqlDb, _ := db.DB()
-	sqlDb.Close()
+		sqlDb, _ := db.DB()
+		sqlDb.Close()
+
+		db.Commit()
+	}
 
 	log.Printf("Panic handled...")
 }

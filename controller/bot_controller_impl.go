@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/go-co-op/gocron"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"gorm.io/gorm"
@@ -91,7 +92,7 @@ func (b *BotControllerImpl) StopListenToBot() {
 func (b *BotControllerImpl) SendDailyMessages() {
 	s := gocron.NewScheduler(time.UTC)
 
-	_, err := s.Every(1).Day().At("06:00").At("21:00").Do(hitAuto, b.bot)
+	_, err := s.Every(1).Day().At("06:00").At("21:00").Do(sendMessages, b.bot, b.db, b.botRepository)
 	helper.PanicIfError(err)
 
 	s.StartImmediately()
@@ -105,7 +106,16 @@ func sendMessageToDeveloper(bot *tgbotapi.BotAPI, msgInput string) {
 	bot.Send(msg)
 }
 
-func hitAuto(bot *tgbotapi.BotAPI) {
-	msg := tgbotapi.NewMessage(1101320255, "Hai")
-	bot.Send(msg)
+func sendMessages(bot *tgbotapi.BotAPI, db *gorm.DB, botRepository repository.BotRepository) {
+
+	usersTelegram := botRepository.GetAllUsersTelegram(db)
+
+	for _, user := range usersTelegram {
+
+		msg := tgbotapi.NewMessage(
+			user.IDTelegram,
+			fmt.Sprintf("Hai %s %s, jangan lupa membersihkan gigi ya", user.FirstName, user.LastName),
+		)
+		bot.Send(msg)
+	}
 }
