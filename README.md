@@ -15,9 +15,10 @@ This is the codebase for Indonesia Digital Caries Risk Assessment Telegram Remin
     │   └───1.0             --- storing sql data patch for version 1.0
     │      └───...          --- sql files
     └───controller          --- the controller to define method, controller will call service
-    └───model               --- the folder putting struct file
-    └───service             --- services for users, authorization etc.
-    └───util                --- utilities
+    └───model               --- the folder putting struct file and database model
+    └───repository          --- control which service is used
+    └───service             --- services for users, remote data etc.
+    └───helper              --- helper utilities
 
 #### Requirement:
 
