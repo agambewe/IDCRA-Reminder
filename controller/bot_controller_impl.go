@@ -5,24 +5,30 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"gorm.io/gorm"
 	"idcra-telegram-scheduler/helper"
+	"idcra-telegram-scheduler/model"
+	"idcra-telegram-scheduler/repository"
 	"log"
 	"strconv"
 	"time"
 )
 
 type BotControllerImpl struct {
-	bot *tgbotapi.BotAPI
-	db  *gorm.DB
+	bot           *tgbotapi.BotAPI
+	db            *gorm.DB
+	botRepository repository.BotRepository
 }
 
-func NewBotController(bot *tgbotapi.BotAPI, db *gorm.DB) BotController {
+func NewBotController(bot *tgbotapi.BotAPI, db *gorm.DB, botRepository repository.BotRepository) BotController {
 	return &BotControllerImpl{
-		bot: bot,
-		db:  db,
+		bot:           bot,
+		db:            db,
+		botRepository: botRepository,
 	}
 }
 
 func (b *BotControllerImpl) ListenToBot() {
+
+	var errDB error
 
 	debugState := helper.Getenv("BOT_DEBUG", "false")
 	debugStateBool, err := strconv.ParseBool(debugState)
@@ -34,6 +40,8 @@ func (b *BotControllerImpl) ListenToBot() {
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 	updates := b.bot.GetUpdatesChan(u)
+
+	defer helper.RecoveryIfPanic(b.db)
 
 	for update := range updates {
 		if update.Message == nil { // If we got a message
@@ -47,14 +55,32 @@ func (b *BotControllerImpl) ListenToBot() {
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
 		switch update.Message.Command() {
 		case "start":
-			msg.Text = "Selamat anda sudah berlangganan bot kami, berikutnya anda akan mendapatkan daily reminder dari kami. Terimakasih."
+
+			userTelegram := model.UserTelegram{
+				IDTelegram: update.Message.Chat.ID,
+				FirstName:  update.Message.Chat.FirstName,
+				LastName:   update.Message.Chat.LastName,
+				Username:   update.Message.Chat.UserName,
+			}
+
+			errDB = b.botRepository.SaveUserTelegram(b.db, userTelegram)
+			if errDB != nil {
+
+				sendMessageToDeveloper(b.bot, errDB.Error())
+				msg.Text = "Maaf terjadi kesalahan."
+			} else {
+				msg.Text = "Selamat anda sudah berlangganan bot kami, berikutnya anda akan mendapatkan daily reminder dari kami. Terimakasih."
+			}
+
 		default:
 			msg.Text = "Maaf, saat ini command tidak tersedia."
 		}
 
 		if _, err := b.bot.Send(msg); err != nil {
-			log.Panic(err)
+			helper.PanicIfError(err)
 		}
+
+		helper.PanicIfError(errDB)
 	}
 }
 
@@ -70,9 +96,16 @@ func (b *BotControllerImpl) SendDailyMessages() {
 
 	s.StartImmediately()
 	s.StartAsync()
+
+	sendMessageToDeveloper(b.bot, "Scheduler Running...")
+}
+
+func sendMessageToDeveloper(bot *tgbotapi.BotAPI, msgInput string) {
+	msg := tgbotapi.NewMessage(1101320255, msgInput)
+	bot.Send(msg)
 }
 
 func hitAuto(bot *tgbotapi.BotAPI) {
-	msg := tgbotapi.NewMessage(1101320255, "Hallo")
+	msg := tgbotapi.NewMessage(1101320255, "Hai")
 	bot.Send(msg)
 }

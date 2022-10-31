@@ -6,6 +6,8 @@ import (
 	"idcra-telegram-scheduler/app"
 	"idcra-telegram-scheduler/controller"
 	"idcra-telegram-scheduler/helper"
+	"idcra-telegram-scheduler/repository"
+	"idcra-telegram-scheduler/service"
 )
 
 func main() {
@@ -13,10 +15,13 @@ func main() {
 	helper.PanicIfError(err)
 
 	db := app.NewDB()
+	botService := service.NewBotService()
+	botRepository := repository.NewBotRepository(botService)
+
 	bot, err := tgbotapi.NewBotAPI(helper.Getenv("BOT_TOKEN", ""))
 	helper.PanicIfError(err)
 
-	botController := controller.NewBotController(bot, db)
+	botController := controller.NewBotController(bot, db, botRepository)
 
 	botController.SendDailyMessages()
 	botController.ListenToBot()
