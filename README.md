@@ -6,7 +6,7 @@ This is the codebase for Indonesia Digital Caries Risk Assessment Telegram Remin
 # Original Readme
 
 #### Structure
-    go-graphql-starer
+    idcra-telegram-scheduler
     │   README.md
     │   server.go           --- the entry file
     │   .env                --- the configuration file
