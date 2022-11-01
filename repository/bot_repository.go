@@ -6,6 +6,6 @@ import (
 )
 
 type BotRepository interface {
-	SaveUserTelegram(db *gorm.DB, request model.UserTelegram) error
+	SaveUserTelegram(db *gorm.DB, request model.UserTelegram) (bool, error)
 	GetAllUsersTelegram(db *gorm.DB) []model.UserTelegram
 }

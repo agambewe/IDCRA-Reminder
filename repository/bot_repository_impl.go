@@ -18,21 +18,26 @@ func NewBotRepository(botService service.BotService) BotRepository {
 	}
 }
 
-func (b *BotRepositoryImpl) SaveUserTelegram(db *gorm.DB, request model.UserTelegram) error {
+func (b *BotRepositoryImpl) SaveUserTelegram(db *gorm.DB, request model.UserTelegram) (bool, error) {
 
-	newId := uuid.NewV1()
-	newIdString := newId.String()
+	state, err := b.botService.GetUserByTelegramID(db, request.IDTelegram)
 
-	userTelegram := model.UserTelegramModel{
-		ID:         newIdString,
-		IDTelegram: request.IDTelegram,
-		FirstName:  request.FirstName,
-		LastName:   request.LastName,
-		Username:   request.Username,
+	if !state {
+		newId := uuid.NewV1()
+		newIdString := newId.String()
+
+		userTelegram := model.UserTelegramModel{
+			ID:         newIdString,
+			IDTelegram: request.IDTelegram,
+			FirstName:  request.FirstName,
+			LastName:   request.LastName,
+			Username:   request.Username,
+		}
+
+		err = b.botService.SaveUserTelegram(db, userTelegram)
 	}
 
-	err := b.botService.SaveUserTelegram(db, userTelegram)
-	return err
+	return state, err
 }
 
 func (b *BotRepositoryImpl) GetAllUsersTelegram(db *gorm.DB) []model.UserTelegram {

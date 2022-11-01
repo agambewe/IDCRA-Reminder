@@ -55,7 +55,7 @@ func (b *BotControllerImpl) ListenToBot() {
 
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
 		switch update.Message.Command() {
-		case "start":
+		case "start", "subscribe":
 
 			userTelegram := model.UserTelegram{
 				IDTelegram: update.Message.Chat.ID,
@@ -64,13 +64,17 @@ func (b *BotControllerImpl) ListenToBot() {
 				Username:   update.Message.Chat.UserName,
 			}
 
-			errDB = b.botRepository.SaveUserTelegram(b.db, userTelegram)
+			state, errDB := b.botRepository.SaveUserTelegram(b.db, userTelegram)
 			if errDB != nil {
 
 				sendMessageToDeveloper(b.bot, errDB.Error())
 				msg.Text = "Maaf terjadi kesalahan."
 			} else {
-				msg.Text = "Selamat anda sudah berlangganan bot kami, berikutnya anda akan mendapatkan daily reminder dari kami. Terimakasih."
+				if !state {
+					msg.Text = "Selamat anda sudah berlangganan bot kami, berikutnya anda akan mendapatkan daily reminder dari kami. Terimakasih."
+				} else {
+					msg.Text = "Anda sudah berlangganan bot kami, harap menunggu daily reminder dari kami. Terimakasih."
+				}
 			}
 
 		default:
