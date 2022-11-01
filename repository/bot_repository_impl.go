@@ -40,6 +40,17 @@ func (b *BotRepositoryImpl) SaveUserTelegram(db *gorm.DB, request model.UserTele
 	return state, err
 }
 
+func (b *BotRepositoryImpl) DeleteUserTelegram(db *gorm.DB, idTelegram int64) (bool, error) {
+	
+	state, err := b.botService.GetUserByTelegramID(db, idTelegram)
+
+	if state {
+		err = b.botService.DeleteUserTelegram(db, idTelegram)
+	}
+
+	return state, err
+}
+
 func (b *BotRepositoryImpl) GetAllUsersTelegram(db *gorm.DB) []model.UserTelegram {
 
 	defer func() {
