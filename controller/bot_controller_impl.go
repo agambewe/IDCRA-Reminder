@@ -101,8 +101,13 @@ func (b *BotControllerImpl) SendDailyMessages() {
 	sendMessageToDeveloper(b.bot, "Scheduler Running...")
 }
 
+// - Alert Developer if Error happened
 func sendMessageToDeveloper(bot *tgbotapi.BotAPI, msgInput string) {
-	msg := tgbotapi.NewMessage(1101320255, msgInput)
+
+	devIDString := helper.Getenv("DEV_CHAT_ID", "")
+	devIDInt, _ := strconv.Atoi(devIDString)
+
+	msg := tgbotapi.NewMessage(int64(devIDInt), msgInput)
 	bot.Send(msg)
 }
 
