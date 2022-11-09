@@ -7,11 +7,3 @@ type UserTelegramModel struct {
 	LastName   string `gorm:"column:last_name"`
 	Username   string `gorm:"column:username"`
 }
-
-type Tabler interface {
-	TableName() string
-}
-
-func (UserTelegramModel) TableName() string {
-	return "users_telegram"
-}

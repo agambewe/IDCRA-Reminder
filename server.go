@@ -18,10 +18,13 @@ func main() {
 	botService := service.NewBotService()
 	botRepository := repository.NewBotRepository(botService)
 
+	recordService := service.NewRecordService()
+	recordRepository := repository.NewRecordRepository(recordService)
+
 	bot, err := tgbotapi.NewBotAPI(helper.Getenv("BOT_TOKEN", ""))
 	helper.PanicIfError(err)
 
-	botController := controller.NewBotController(bot, db, botRepository)
+	botController := controller.NewBotController(bot, db, botRepository, recordRepository)
 
 	botController.SendDailyMessages()
 	botController.ListenToBot()
