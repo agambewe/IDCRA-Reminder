@@ -48,3 +48,45 @@ func (r *RecordRepositoryImpl) RecordUserAnswer(db *gorm.DB, request model.UserT
 
 	return true, nil
 }
+
+func (r *RecordRepositoryImpl) CreateReport(db *gorm.DB) map[int64]model.UserRecord {
+
+	records := map[int64]model.UserRecord{}
+
+	userRecords := r.recordService.CreateReport(db)
+
+	for _, record := range userRecords {
+
+		if _, ok := records[record.TelegramId]; !ok {
+			records[record.TelegramId] = model.UserRecord{
+				CountDayYES:   0,
+				CountDayNO:    0,
+				CountNightYES: 0,
+				CountNightNO:  0,
+			}
+		}
+
+		val, _ := records[record.TelegramId]
+
+		if record.AnswerType == "DAY" {
+
+			if record.UserAnswer == 1 {
+				val.CountDayYES = record.AnsCount
+			} else {
+				val.CountDayNO = record.AnsCount
+			}
+
+		} else if record.AnswerType == "NIGHT" {
+
+			if record.UserAnswer == 1 {
+				val.CountNightYES = record.AnsCount
+			} else {
+				val.CountNightYES = record.AnsCount
+			}
+		}
+
+		records[record.TelegramId] = val
+	}
+
+	return records
+}

@@ -25,10 +25,26 @@ func (r *RecordServiceImpl) IsAlreadyExist(db *gorm.DB, userRecord model.UserTel
 
 	var record model.UserTelegramRecordModel
 
-	result := db.Where("DATE(created_at) = DATE(current_timestamp) AND answer_type = ?", userRecord.AnswerType).First(&record)
+	result := db.Where("DATE(created_at) = DATE(current_timestamp) AND answer_type = ? AND id_telegram = ?", userRecord.AnswerType, userRecord.TelegramId).First(&record)
 	if result.RowsAffected != 0 {
 		return true
 	}
 
 	return false
+}
+
+func (r *RecordServiceImpl) CreateReport(db *gorm.DB) []model.UserRecordModel {
+
+	var record []model.UserRecordModel
+
+	result := db.Raw(`select id_telegram, answer_type, user_answer, count(user_answer) as count from users_telegram_records
+                                                             where datediff(current_date, date(created_at)) <= 30
+                                                             group by id_telegram, answer_type, user_answer
+                                                             order by id_telegram, answer_type`).Find(&record)
+
+	if result.RowsAffected == 0 {
+		return []model.UserRecordModel{}
+	}
+
+	return record
 }
