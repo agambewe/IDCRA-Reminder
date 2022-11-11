@@ -202,7 +202,7 @@ func (b *BotControllerImpl) SendDailyMessages() {
 
 	//s.StartImmediately()
 	s.StartAsync()
-	s.RunAll()
+	//s.RunAll()
 
 	sendMessageToDeveloper(b.bot, "Scheduler Running...")
 }
