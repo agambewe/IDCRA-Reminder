@@ -191,10 +191,10 @@ func (b *BotControllerImpl) StopListenToBot() {
 func (b *BotControllerImpl) SendDailyMessages() {
 	s := gocron.NewScheduler(time.UTC)
 
-	_, err := s.Every(1).Day().At("06:00").Tag("morning").Do(sendMessages, b.bot, b.db, b.botRepository, reflect.ValueOf(Morning).String())
+	_, err := s.Every(1).Day().Tag("morning").At("23:00").Do(sendMessages, b.bot, b.db, b.botRepository, reflect.ValueOf(Morning).String())
 	helper.PanicIfError(err)
 
-	_, err = s.Every(1).Day().At("21:00").Tag("night").Do(sendMessages, b.bot, b.db, b.botRepository, reflect.ValueOf(Night).String())
+	_, err = s.Every(1).Day().Tag("night").At("14:00").Do(sendMessages, b.bot, b.db, b.botRepository, reflect.ValueOf(Night).String())
 	helper.PanicIfError(err)
 
 	_, err = s.Cron("0 7 1 1/1 *").Tag("report").Do(sendReports, b.bot, b.db, b.recordRepository)
