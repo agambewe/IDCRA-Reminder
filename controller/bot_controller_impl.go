@@ -197,7 +197,7 @@ func (b *BotControllerImpl) SendDailyMessages() {
 	_, err = s.Every(1).Day().Tag("night").At("14:00").Do(sendMessages, b.bot, b.db, b.botRepository, reflect.ValueOf(Night).String())
 	helper.PanicIfError(err)
 
-	_, err = s.Cron("0 7 1 1/1 *").Tag("report").Do(sendReports, b.bot, b.db, b.recordRepository)
+	_, err = s.Cron("0 0 1 1/1 *").Tag("report").Do(sendReports, b.bot, b.db, b.recordRepository)
 	helper.PanicIfError(err)
 
 	//s.StartImmediately()
@@ -211,10 +211,12 @@ func sendReports(bot *tgbotapi.BotAPI, db *gorm.DB, recordRepository repository.
 	userRecords := recordRepository.CreateReport(db)
 	log.Print(userRecords)
 	for key, val := range userRecords {
+
+		missed := (30 - (val.CountNightYES + val.CountDayYES)) + (val.CountDayNO + val.CountNightNO)
 		msg := tgbotapi.NewMessage(key, fmt.Sprintf(`Dalam sebulan ini sikat gigi pagi setelah sarapan %v kali, sikat gigi malam sebelum tidur %v kali, dan telah terlewat %v kali.
 
 Ayo jaga terus kesehatan gigi mu dengan sikat gigi 2x sehari pagi setelah sarapan dan malam sebelum tidur
-		`, val.CountDayYES, val.CountNightYES, val.CountDayNO+val.CountNightNO))
+		`, val.CountDayYES, val.CountNightYES, missed))
 
 		if _, err := bot.Send(msg); err != nil {
 			panic(err)
